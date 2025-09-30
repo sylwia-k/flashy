@@ -41,25 +41,7 @@ export const signUpAction = async (formData: FormData) => {
   }
 
   if (user) {
-    try {
-      const { error: updateError } = await supabase
-        .from('users')
-        .insert({
-          id: user.id,
-          name: fullName,
-          full_name: fullName,
-          email: email,
-          user_id: user.id,
-          token_identifier: user.id,
-          created_at: new Date().toISOString()
-        });
-
-      if (updateError) {
-        console.error('Error updating user profile:', updateError);
-      }
-    } catch (err) {
-      console.error('Error in user profile creation:', err);
-    }
+    // Profiles are now created via DB trigger in Supabase migrations
   }
 
   return encodedRedirect(

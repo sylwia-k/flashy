@@ -22,6 +22,8 @@ interface Flashcard {
   definition: string
 }
 
+type CardStatus = 'learn' | 'recognize' | 'know'
+
 interface GameStats {
   correct: number
   incorrect: number
@@ -161,11 +163,23 @@ export default function GamesPage() {
   const loadFlashcards = async (setId: string) => {
     const { data: cardsData } = await supabase
       .from('flashcards')
-      .select('*')
+      .select(`
+        id,
+        term,
+        definition,
+        progress:flashcard_progress(status)
+      `)
       .eq('set_id', setId)
       .order('created_at', { ascending: true })
 
-    setFlashcards(cardsData || [])
+    const mapped = (cardsData || []).map((c: any) => ({
+      id: c.id,
+      term: c.term,
+      definition: c.definition,
+      progress_status: c.progress?.[0]?.status as CardStatus | undefined
+    }))
+
+    setFlashcards(mapped as any)
   }
 
   const shuffleArray = (arr: Flashcard[]) => {
@@ -183,7 +197,18 @@ export default function GamesPage() {
     setGameMode(mode)
     setGameActive(true)
     setGameStartTime(Date.now())
-    setGameCards(shuffleArray(flashcards))
+    // Prioritize learn -> recognize -> know
+    const learn: Flashcard[] = []
+    const recognize: Flashcard[] = []
+    const know: Flashcard[] = []
+    flashcards.forEach((c: any) => {
+      const status: CardStatus = c.progress_status || 'learn'
+      if (status === 'learn') learn.push(c)
+      else if (status === 'recognize') recognize.push(c)
+      else know.push(c)
+    })
+    const ordered = [...shuffleArray(learn), ...shuffleArray(recognize), ...shuffleArray(know)]
+    setGameCards(ordered)
     setCurrentCardIndex(0)
     setGameStats({ correct: 0, incorrect: 0, streak: 0, totalTime: 0 })
     setUserAnswer('')
@@ -227,7 +252,7 @@ export default function GamesPage() {
       newStats.streak = 0
       toast({
         title: "Incorrect 😔",
-        description: `The correct answer was: ${flashcards[currentCardIndex].definition}`,
+        description: `The correct answer was: ${gameCards[currentCardIndex].definition}`,
         variant: "destructive"
       })
     }

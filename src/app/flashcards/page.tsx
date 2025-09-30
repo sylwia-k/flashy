@@ -27,6 +27,7 @@ interface Flashcard {
   id: string
   term: string
   definition: string
+  progress_status?: 'learn' | 'recognize' | 'know'
 }
 
 export default function FlashcardsPage() {
@@ -136,11 +137,22 @@ export default function FlashcardsPage() {
   const loadFlashcards = async (setId: string) => {
     const { data: cardsData } = await supabase
       .from('flashcards')
-      .select('*')
+      .select(`
+        id,
+        term,
+        definition,
+        progress:flashcard_progress(status)
+      `)
       .eq('set_id', setId)
       .order('created_at', { ascending: true })
 
-    setFlashcards(cardsData || [])
+    const mapped = (cardsData || []).map((c: any) => ({
+      id: c.id,
+      term: c.term,
+      definition: c.definition,
+      progress_status: c.progress?.[0]?.status as 'learn' | 'recognize' | 'know' | undefined
+    }))
+    setFlashcards(mapped)
   }
 
   const generateShareCode = () => {
@@ -297,6 +309,30 @@ export default function FlashcardsPage() {
         description: error.message || "Failed to delete flashcard",
         variant: "destructive"
       })
+    }
+  }
+
+  const updateCardStatus = async (cardId: string, status: 'learn' | 'recognize' | 'know') => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const now = new Date().toISOString()
+      const { error } = await supabase
+        .from('flashcard_progress')
+        .upsert({
+          user_id: user.id,
+          card_id: cardId,
+          status,
+          last_reviewed: now,
+          updated_at: now
+        })
+
+      if (error) throw error
+
+      setFlashcards(prev => prev.map(c => c.id === cardId ? { ...c, progress_status: status } : c))
+      toast({ title: 'Saved', description: 'Card status updated' })
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to update status', variant: 'destructive' })
     }
   }
 
@@ -816,6 +852,32 @@ export default function FlashcardsPage() {
                             </Button>
                           </div>
                           <p className="text-gray-600 text-sm">{card.definition}</p>
+                          <div className="mt-3 flex gap-2">
+                            <Button
+                              variant={card.progress_status === 'learn' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => updateCardStatus(card.id, 'learn')}
+                              className={card.progress_status === 'learn' ? 'bg-purple-600 hover:bg-purple-700' : ''}
+                            >
+                              Learn
+                            </Button>
+                            <Button
+                              variant={card.progress_status === 'recognize' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => updateCardStatus(card.id, 'recognize')}
+                              className={card.progress_status === 'recognize' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                            >
+                              Recognize
+                            </Button>
+                            <Button
+                              variant={card.progress_status === 'know' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => updateCardStatus(card.id, 'know')}
+                              className={card.progress_status === 'know' ? 'bg-green-600 hover:bg-green-700' : ''}
+                            >
+                              Know
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>

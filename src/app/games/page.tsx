@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import { BookOpen, Play, Trophy, Clock, Target, Zap, ArrowRight, RotateCcw, Gamepad2 } from 'lucide-react'
 import { createClient } from '@/supabase/client'
+import { scheduleNextReview } from '@/lib/utils'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 
@@ -167,7 +168,7 @@ export default function GamesPage() {
         id,
         term,
         definition,
-        progress:flashcard_progress(status)
+        progress:flashcard_progress(status, due_at, ease_factor, repetitions, interval_minutes)
       `)
       .eq('set_id', setId)
       .order('created_at', { ascending: true })
@@ -176,7 +177,8 @@ export default function GamesPage() {
       id: c.id,
       term: c.term,
       definition: c.definition,
-      progress_status: c.progress?.[0]?.status as CardStatus | undefined
+      progress_status: c.progress?.[0]?.status as CardStatus | undefined,
+      due_at: c.progress?.[0]?.due_at as string | undefined
     }))
 
     setFlashcards(mapped as any)
@@ -207,7 +209,16 @@ export default function GamesPage() {
       else if (status === 'recognize') recognize.push(c)
       else know.push(c)
     })
-    const ordered = [...shuffleArray(learn), ...shuffleArray(recognize), ...shuffleArray(know)]
+    // Sort due soonest first within each bucket if due_at exists
+    const byDue = (a: any, b: any) => {
+      const da = a.due_at ? new Date(a.due_at).getTime() : Infinity
+      const db = b.due_at ? new Date(b.due_at).getTime() : Infinity
+      return da - db
+    }
+    learn.sort(byDue)
+    recognize.sort(byDue)
+    know.sort(byDue)
+    const ordered = [...learn, ...recognize, ...know]
     setGameCards(ordered)
     setCurrentCardIndex(0)
     setGameStats({ correct: 0, incorrect: 0, streak: 0, totalTime: 0 })
@@ -235,7 +246,7 @@ export default function GamesPage() {
     setCorrectAnswer(currentCard.definition)
   }
 
-  const handleAnswer = (isCorrect: boolean) => {
+  const handleAnswer = async (isCorrect: boolean) => {
     if (awaitingNext) return
     setAwaitingNext(true)
     const newStats = { ...gameStats }
@@ -258,6 +269,33 @@ export default function GamesPage() {
     }
 
     setGameStats(newStats)
+
+    // Update scheduling for this card
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user && gameCards[currentCardIndex]) {
+        const now = new Date()
+        const grade = isCorrect ? (newStats.streak >= 3 ? 5 : 4) : 2
+        const outcome = { grade: grade as 0|1|2|3|4|5, responseMs: 3000 }
+        const sched = scheduleNextReview(now, undefined, outcome)
+        await supabase.from('flashcard_progress').upsert({
+          user_id: user.id,
+          set_id: selectedSet?.id,
+          card_id: gameCards[currentCardIndex].id,
+          status: isCorrect ? 'recognize' : 'learn',
+          ease_factor: sched.easeFactor,
+          repetitions: sched.repetitions,
+          interval_minutes: sched.intervalMinutes,
+          last_grade: grade,
+          last_response_ms: outcome.responseMs,
+          response_ms_avg: sched.responseMsAvg,
+          confidence_avg: sched.confidenceAvg,
+          last_reviewed: now.toISOString(),
+          due_at: sched.nextDueAtISO,
+          first_reviewed_at: now.toISOString(),
+        })
+      }
+    } catch {}
     
     // Move to next card
     setTimeout(() => {

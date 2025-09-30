@@ -28,6 +28,7 @@ interface Flashcard {
   term: string
   definition: string
   progress_status?: 'learn' | 'recognize' | 'know'
+  next_due?: string
 }
 
 export default function FlashcardsPage() {
@@ -141,7 +142,7 @@ export default function FlashcardsPage() {
         id,
         term,
         definition,
-        progress:flashcard_progress(status)
+        progress:flashcard_progress(status, due_at, interval_minutes)
       `)
       .eq('set_id', setId)
       .order('created_at', { ascending: true })
@@ -150,7 +151,8 @@ export default function FlashcardsPage() {
       id: c.id,
       term: c.term,
       definition: c.definition,
-      progress_status: c.progress?.[0]?.status as 'learn' | 'recognize' | 'know' | undefined
+      progress_status: c.progress?.[0]?.status as 'learn' | 'recognize' | 'know' | undefined,
+      next_due: c.progress?.[0]?.due_at as string | undefined
     }))
     setFlashcards(mapped)
   }
@@ -852,6 +854,9 @@ export default function FlashcardsPage() {
                             </Button>
                           </div>
                           <p className="text-gray-600 text-sm">{card.definition}</p>
+                          {card.next_due && (
+                            <p className="text-xs text-gray-500 mt-1">Next review: {new Date(card.next_due).toLocaleString()}</p>
+                          )}
                           <div className="mt-3 flex gap-2">
                             <Button
                               variant={card.progress_status === 'learn' ? 'default' : 'outline'}

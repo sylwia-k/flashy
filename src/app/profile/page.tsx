@@ -22,6 +22,11 @@ interface UserProfile {
   email?: string
 }
 
+interface UserSettings {
+  daily_new_limit?: number
+  review_session_limit?: number
+}
+
 interface FlashcardSet {
   id: string
   name: string
@@ -46,6 +51,7 @@ export default function ProfilePage() {
     newPassword: '',
     confirmPassword: ''
   })
+  const [settings, setSettings] = useState<UserSettings>({ daily_new_limit: 20, review_session_limit: 100 })
 
   const supabase = createClient()
   const router = useRouter()
@@ -121,6 +127,17 @@ export default function ProfilePage() {
       })) || []
 
       setFlashcardSets(formattedSets)
+
+      // Load or create settings
+      const { data: settingsData } = await supabase
+        .from('user_settings')
+        .select('daily_new_limit, review_session_limit')
+        .eq('user_id', user.id)
+        .single()
+      if (settingsData) setSettings(settingsData)
+      else {
+        await supabase.from('user_settings').upsert({ user_id: user.id, daily_new_limit: 20, review_session_limit: 100 })
+      }
     } catch (error) {
       console.error('Error loading user data:', error)
       toast({
@@ -130,6 +147,25 @@ export default function ProfilePage() {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const saveSettings = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { error } = await supabase
+        .from('user_settings')
+        .upsert({
+          user_id: user.id,
+          daily_new_limit: settings.daily_new_limit,
+          review_session_limit: settings.review_session_limit,
+          updated_at: new Date().toISOString()
+        })
+      if (error) throw error
+      toast({ title: 'Saved', description: 'Settings updated' })
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to save settings', variant: 'destructive' })
     }
   }
 
@@ -413,6 +449,27 @@ export default function ProfilePage() {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle>Learning Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Daily New Cards Limit</Label>
+                  <Input type="number" value={settings.daily_new_limit}
+                    onChange={(e)=>setSettings(prev=>({...prev, daily_new_limit: Number(e.target.value)}))} />
+                </div>
+                <div>
+                  <Label>Review Session Limit</Label>
+                  <Input type="number" value={settings.review_session_limit}
+                    onChange={(e)=>setSettings(prev=>({...prev, review_session_limit: Number(e.target.value)}))} />
+                </div>
+                <div>
+                  <Button onClick={saveSettings} className="bg-purple-600 hover:bg-purple-700">Save Settings</Button>
                 </div>
               </CardContent>
             </Card>

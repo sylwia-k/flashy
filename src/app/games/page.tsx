@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import { BookOpen, Play, Trophy, Clock, Target, Zap, ArrowRight, RotateCcw, Gamepad2 } from 'lucide-react'
 import { createClient } from '@/supabase/client'
-import { scheduleNextReview } from '@/lib/utils'
+import { scheduleNextReview, selectSessionCards } from '@/lib/utils'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 
@@ -67,6 +67,8 @@ export default function GamesPage() {
   const [correctAnswer, setCorrectAnswer] = useState('')
   const [timeLeft, setTimeLeft] = useState(30)
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
+  const [confidence, setConfidence] = useState<number | null>(null)
+  const [cardShownAt, setCardShownAt] = useState<number>(0)
 
   const supabase = createClient()
   const router = useRouter()
@@ -123,6 +125,12 @@ export default function GamesPage() {
       handleAnswer(false)
     }
   }, [timeLeft, gameActive, gameMode])
+  useEffect(() => {
+    if (gameActive && gameCards[currentCardIndex]) {
+      setCardShownAt(Date.now())
+      setConfidence(null)
+    }
+  }, [gameActive, currentCardIndex, gameCards])
 
   // Keep quiz options synced with current card
   useEffect(() => {
@@ -219,7 +227,10 @@ export default function GamesPage() {
     recognize.sort(byDue)
     know.sort(byDue)
     const ordered = [...learn, ...recognize, ...know]
-    setGameCards(ordered)
+    // Apply session selection with daily cap
+    const dailyCap = 20
+    const session = selectSessionCards(ordered as any, dailyCap) as any
+    setGameCards(session)
     setCurrentCardIndex(0)
     setGameStats({ correct: 0, incorrect: 0, streak: 0, totalTime: 0 })
     setUserAnswer('')
@@ -275,8 +286,10 @@ export default function GamesPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user && gameCards[currentCardIndex]) {
         const now = new Date()
-        const grade = isCorrect ? (newStats.streak >= 3 ? 5 : 4) : 2
-        const outcome = { grade: grade as 0|1|2|3|4|5, responseMs: 3000 }
+        const elapsed = Math.max(0, Date.now() - (cardShownAt || Date.now()))
+        const confidenceAdj = confidence ?? (isCorrect ? 0.7 : 0.3)
+        const grade = isCorrect ? (confidenceAdj > 0.8 ? 5 : 4) : 2
+        const outcome = { grade: grade as 0|1|2|3|4|5, responseMs: elapsed, confidence: confidenceAdj }
         const sched = scheduleNextReview(now, undefined, outcome)
         await supabase.from('flashcard_progress').upsert({
           user_id: user.id,
@@ -564,6 +577,11 @@ export default function GamesPage() {
                           }
                         }}
                       />
+                      <div className="flex gap-2 justify-center mb-4">
+                        <Button variant={confidence===0.3? 'default':'outline'} size="sm" onClick={()=>setConfidence(0.3)}>Low</Button>
+                        <Button variant={confidence===0.6? 'default':'outline'} size="sm" onClick={()=>setConfidence(0.6)}>Med</Button>
+                        <Button variant={confidence===0.9? 'default':'outline'} size="sm" onClick={()=>setConfidence(0.9)}>High</Button>
+                      </div>
                       <Button 
                         onClick={() => {
                           const isCorrect = userAnswer.toLowerCase().trim() === gameCards[currentCardIndex].definition.toLowerCase().trim()
@@ -613,6 +631,11 @@ export default function GamesPage() {
                           }
                         }}
                       />
+                      <div className="flex gap-2 justify-center mb-4">
+                        <Button variant={confidence===0.3? 'default':'outline'} size="sm" onClick={()=>setConfidence(0.3)}>Low</Button>
+                        <Button variant={confidence===0.6? 'default':'outline'} size="sm" onClick={()=>setConfidence(0.6)}>Med</Button>
+                        <Button variant={confidence===0.9? 'default':'outline'} size="sm" onClick={()=>setConfidence(0.9)}>High</Button>
+                      </div>
                       <Button 
                         onClick={() => {
                           const isCorrect = userAnswer.toLowerCase().trim() === gameCards[currentCardIndex].definition.toLowerCase().trim()
@@ -650,6 +673,11 @@ export default function GamesPage() {
                             {option}
                           </Button>
                         ))}
+                      </div>
+                      <div className="flex gap-2 justify-center mt-4">
+                        <Button variant={confidence===0.3? 'default':'outline'} size="sm" onClick={()=>setConfidence(0.3)}>Low</Button>
+                        <Button variant={confidence===0.6? 'default':'outline'} size="sm" onClick={()=>setConfidence(0.6)}>Med</Button>
+                        <Button variant={confidence===0.9? 'default':'outline'} size="sm" onClick={()=>setConfidence(0.9)}>High</Button>
                       </div>
                     </div>
                   )}

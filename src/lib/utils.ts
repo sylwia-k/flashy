@@ -101,3 +101,34 @@ export function scheduleNextReview(
 export function pickDailyNewLimit(totalNew: number, dailyCap: number): number {
   return Math.max(0, Math.min(totalNew, dailyCap))
 }
+
+export type CardWithProgress = {
+  id: string
+  due_at?: string
+  progress_status?: 'learn' | 'recognize' | 'know'
+}
+
+export function selectSessionCards(
+  cards: CardWithProgress[],
+  dailyNewCap: number
+): CardWithProgress[] {
+  const now = Date.now()
+  const due = cards.filter(c => c.due_at && new Date(c.due_at).getTime() <= now)
+  const newOnes = cards.filter(c => !c.due_at)
+  const learn = cards.filter(c => c.progress_status === 'learn')
+  const recognize = cards.filter(c => c.progress_status === 'recognize')
+  const know = cards.filter(c => c.progress_status === 'know')
+
+  const sortByDue = (a: CardWithProgress, b: CardWithProgress) =>
+    (a.due_at ? new Date(a.due_at).getTime() : Infinity) - (b.due_at ? new Date(b.due_at).getTime() : Infinity)
+
+  due.sort(sortByDue)
+  learn.sort(sortByDue)
+  recognize.sort(sortByDue)
+  know.sort(sortByDue)
+
+  const newLimit = pickDailyNewLimit(newOnes.length, dailyNewCap)
+  const selectedNew = newOnes.slice(0, newLimit)
+
+  return [...due, ...learn, ...recognize, ...know, ...selectedNew]
+}

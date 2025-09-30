@@ -47,6 +47,13 @@ export default async function Dashboard() {
     .order('created_at', { ascending: false })
     .limit(3);
 
+  // Upcoming reviews (next 24h)
+  const { data: upcoming } = await supabase
+    .from('flashcard_progress')
+    .select('id')
+    .eq('user_id', user.id)
+    .lte('due_at', new Date(Date.now() + 24*60*60*1000).toISOString());
+
   const formattedSets = flashcardSets?.map(set => ({
     id: set.id,
     name: set.name,
@@ -210,12 +217,12 @@ export default async function Dashboard() {
 
             <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Study Streak</CardTitle>
+                <CardTitle className="text-sm font-medium">Due next 24h</CardTitle>
                 <Calendar className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0</div>
-                <p className="text-xs text-gray-600">Days in a row</p>
+                <div className="text-2xl font-bold">{upcoming?.length || 0}</div>
+                <p className="text-xs text-gray-600">Reviews scheduled</p>
               </CardContent>
             </Card>
           </section>

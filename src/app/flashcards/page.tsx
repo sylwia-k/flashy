@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { BookOpen, Plus, Edit, Trash2, Upload, Download, Play, Calendar, Hash, Share2, Copy, ExternalLink } from 'lucide-react'
 import { createClient } from '@/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 
 interface FlashcardSet {
@@ -48,11 +48,23 @@ export default function FlashcardsPage() {
 
   const supabase = createClient()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
 
   useEffect(() => {
     loadUserAndSets()
   }, [])
+
+  useEffect(() => {
+    const setId = searchParams.get('set')
+    if (setId && flashcardSets.length > 0) {
+      const set = flashcardSets.find(s => s.id === setId)
+      if (set) {
+        setSelectedSet(set)
+        loadFlashcards(set.id)
+      }
+    }
+  }, [searchParams, flashcardSets])
 
   const loadUserAndSets = async () => {
     try {
@@ -350,27 +362,38 @@ export default function FlashcardsPage() {
 
         if (file.name.endsWith('.json')) {
           const jsonData = JSON.parse(content)
-          cards = Array.isArray(jsonData) ? jsonData : []
+          cards = Array.isArray(jsonData) ? jsonData.filter((c:any) => c.term && c.definition) : []
         } else if (file.name.endsWith('.csv')) {
-          const lines = content.split('\n').filter(line => line.trim())
-          const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
+          const lines = content.split(/\r?\n/).filter(line => line.trim())
+          if (lines.length > 1) {
+            const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
+            const termIdx = headers.findIndex(h => /term/i.test(h))
+            const defIdx = headers.findIndex(h => /(definition|answer)/i.test(h))
           
-          for (let i = 1; i < lines.length; i++) {
-            const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim())
-            if (values.length >= 2) {
-              cards.push({
-                term: values[0],
-                definition: values[1]
-              })
+            for (let i = 1; i < lines.length; i++) {
+              const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim())
+              const term = termIdx >= 0 ? values[termIdx] : values[0]
+              const definition = defIdx >= 0 ? values[defIdx] : values[1]
+              if (term && definition) {
+                cards.push({ term, definition })
+              }
             }
           }
         }
 
         if (cards.length > 0) {
+          // De-duplicate by term within imported batch
+          const seen = new Set<string>()
+          const unique = cards.filter(c => {
+            const key = c.term.toLowerCase().trim()
+            if (seen.has(key)) return false
+            seen.add(key)
+            return true
+          })
           const { error } = await supabase
             .from('flashcards')
             .insert(
-              cards.map(card => ({
+              unique.map(card => ({
                 set_id: selectedSet.id,
                 term: card.term,
                 definition: card.definition
@@ -384,7 +407,7 @@ export default function FlashcardsPage() {
           
           toast({
             title: "Success",
-            description: `Imported ${cards.length} flashcards successfully`
+            description: `Imported ${unique.length} flashcards successfully`
           })
         }
       } catch (error: any) {

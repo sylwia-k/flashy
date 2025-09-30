@@ -36,6 +36,7 @@ export default function GamesPage() {
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([])
   const [selectedSet, setSelectedSet] = useState<FlashcardSet | null>(null)
   const [flashcards, setFlashcards] = useState<Flashcard[]>([])
+  const [gameCards, setGameCards] = useState<Flashcard[]>([])
   const [gameMode, setGameMode] = useState<GameMode>('select')
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [gameStats, setGameStats] = useState<GameStats>({ correct: 0, incorrect: 0, streak: 0, totalTime: 0 })
@@ -44,6 +45,7 @@ export default function GamesPage() {
   const [showAnswer, setShowAnswer] = useState(false)
   const [gameActive, setGameActive] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [awaitingNext, setAwaitingNext] = useState(false)
   
   // Falling Blocks Game State
   const [blockPosition, setBlockPosition] = useState({ x: 50, y: 0 })
@@ -119,6 +121,14 @@ export default function GamesPage() {
     }
   }, [timeLeft, gameActive, gameMode])
 
+  // Keep quiz options synced with current card
+  useEffect(() => {
+    if (gameActive && gameMode === 'quick-quiz') {
+      generateQuizOptions()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameActive, gameMode, currentCardIndex, gameCards])
+
   const loadUserAndSets = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -158,12 +168,22 @@ export default function GamesPage() {
     setFlashcards(cardsData || [])
   }
 
+  const shuffleArray = (arr: Flashcard[]) => {
+    const copy = [...arr]
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[copy[i], copy[j]] = [copy[j], copy[i]]
+    }
+    return copy
+  }
+
   const startGame = (mode: GameMode) => {
     if (!selectedSet || flashcards.length === 0) return
 
     setGameMode(mode)
     setGameActive(true)
     setGameStartTime(Date.now())
+    setGameCards(shuffleArray(flashcards))
     setCurrentCardIndex(0)
     setGameStats({ correct: 0, incorrect: 0, streak: 0, totalTime: 0 })
     setUserAnswer('')
@@ -172,15 +192,14 @@ export default function GamesPage() {
 
     if (mode === 'quick-quiz') {
       setTimeLeft(30)
-      generateQuizOptions()
     }
   }
 
   const generateQuizOptions = () => {
-    if (flashcards.length === 0) return
+    if (gameCards.length === 0 || !gameCards[currentCardIndex]) return
 
-    const currentCard = flashcards[currentCardIndex]
-    const wrongAnswers = flashcards
+    const currentCard = gameCards[currentCardIndex]
+    const wrongAnswers = gameCards
       .filter(card => card.id !== currentCard.id)
       .sort(() => Math.random() - 0.5)
       .slice(0, 3)
@@ -192,6 +211,8 @@ export default function GamesPage() {
   }
 
   const handleAnswer = (isCorrect: boolean) => {
+    if (awaitingNext) return
+    setAwaitingNext(true)
     const newStats = { ...gameStats }
     
     if (isCorrect) {
@@ -215,18 +236,18 @@ export default function GamesPage() {
     
     // Move to next card
     setTimeout(() => {
-      if (currentCardIndex < flashcards.length - 1) {
+      if (currentCardIndex < gameCards.length - 1) {
         setCurrentCardIndex(prev => prev + 1)
         setUserAnswer('')
         setShowAnswer(false)
         setSelectedOption(null)
         if (gameMode === 'quick-quiz') {
           setTimeLeft(30)
-          generateQuizOptions()
         }
       } else {
         endGame()
       }
+      setAwaitingNext(false)
     }, 1500)
   }
 
@@ -237,7 +258,7 @@ export default function GamesPage() {
     
     toast({
       title: "Game Complete! 🏆",
-      description: `Score: ${gameStats.correct}/${flashcards.length} correct`,
+      description: `Score: ${gameStats.correct}/${gameCards.length} correct`,
     })
   }
 
@@ -444,11 +465,11 @@ export default function GamesPage() {
                 </Card>
               </div>
 
-              <Progress value={(currentCardIndex / flashcards.length) * 100} className="mb-6 h-3" />
+              <Progress value={(gameCards.length ? (currentCardIndex / gameCards.length) * 100 : 0)} className="mb-6 h-3" />
             </div>
 
             {/* Game Content */}
-            {gameActive && flashcards[currentCardIndex] && (
+            {gameActive && gameCards[currentCardIndex] && (
               <Card className="max-w-2xl mx-auto border-0 shadow-xl bg-white/90 backdrop-blur-sm">
                 <CardContent className="p-8">
                   {gameMode === 'falling-blocks' && (
@@ -467,7 +488,7 @@ export default function GamesPage() {
                         <p className="text-sm text-gray-600 mb-4">Block cleared! Answer the question to continue:</p>
                       </div>
                       
-                      <h3 className="text-2xl font-bold mb-4 text-purple-600">{flashcards[currentCardIndex].term}</h3>
+                      <h3 className="text-2xl font-bold mb-4 text-purple-600">{gameCards[currentCardIndex].term}</h3>
                       <Input
                         value={userAnswer}
                         onChange={(e) => setUserAnswer(e.target.value)}
@@ -475,14 +496,14 @@ export default function GamesPage() {
                         className="mb-4 text-center text-lg"
                         onKeyPress={(e) => {
                           if (e.key === 'Enter') {
-                            const isCorrect = userAnswer.toLowerCase().trim() === flashcards[currentCardIndex].definition.toLowerCase().trim()
+                            const isCorrect = userAnswer.toLowerCase().trim() === gameCards[currentCardIndex].definition.toLowerCase().trim()
                             handleAnswer(isCorrect)
                           }
                         }}
                       />
                       <Button 
                         onClick={() => {
-                          const isCorrect = userAnswer.toLowerCase().trim() === flashcards[currentCardIndex].definition.toLowerCase().trim()
+                          const isCorrect = userAnswer.toLowerCase().trim() === gameCards[currentCardIndex].definition.toLowerCase().trim()
                           handleAnswer(isCorrect)
                         }}
                         disabled={!userAnswer.trim()}
@@ -516,7 +537,7 @@ export default function GamesPage() {
                         <p className="text-sm text-gray-600 mb-4">Checkpoint reached! Answer to continue running:</p>
                       </div>
                       
-                      <h3 className="text-2xl font-bold mb-4 text-green-600">{flashcards[currentCardIndex].term}</h3>
+                      <h3 className="text-2xl font-bold mb-4 text-green-600">{gameCards[currentCardIndex].term}</h3>
                       <Input
                         value={userAnswer}
                         onChange={(e) => setUserAnswer(e.target.value)}
@@ -524,14 +545,14 @@ export default function GamesPage() {
                         className="mb-4 text-center text-lg"
                         onKeyPress={(e) => {
                           if (e.key === 'Enter') {
-                            const isCorrect = userAnswer.toLowerCase().trim() === flashcards[currentCardIndex].definition.toLowerCase().trim()
+                            const isCorrect = userAnswer.toLowerCase().trim() === gameCards[currentCardIndex].definition.toLowerCase().trim()
                             handleAnswer(isCorrect)
                           }
                         }}
                       />
                       <Button 
                         onClick={() => {
-                          const isCorrect = userAnswer.toLowerCase().trim() === flashcards[currentCardIndex].definition.toLowerCase().trim()
+                          const isCorrect = userAnswer.toLowerCase().trim() === gameCards[currentCardIndex].definition.toLowerCase().trim()
                           handleAnswer(isCorrect)
                         }}
                         disabled={!userAnswer.trim()}
@@ -549,7 +570,7 @@ export default function GamesPage() {
                         <Progress value={(timeLeft / 30) * 100} className="mb-4 h-3" />
                       </div>
                       
-                      <h3 className="text-2xl font-bold mb-6 text-blue-600">{flashcards[currentCardIndex].term}</h3>
+                      <h3 className="text-2xl font-bold mb-6 text-blue-600">{gameCards[currentCardIndex].term}</h3>
                       <div className="grid grid-cols-1 gap-3">
                         {quizOptions.map((option, index) => (
                           <Button
@@ -587,7 +608,7 @@ export default function GamesPage() {
                     </div>
                     <div className="p-4 bg-blue-50 rounded-lg">
                       <div className="text-2xl font-bold text-blue-600">
-                        {Math.round((gameStats.correct / flashcards.length) * 100)}%
+                        {gameCards.length ? Math.round((gameStats.correct / gameCards.length) * 100) : 0}%
                       </div>
                       <div className="text-sm text-gray-600">Accuracy</div>
                     </div>

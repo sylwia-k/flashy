@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { BookOpen, Plus, Edit, Trash2, Upload, Download, Play, Calendar, Hash, Share2, Copy, ExternalLink } from 'lucide-react'
 import { createClient } from '@/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 
 interface FlashcardSet {
@@ -27,6 +27,8 @@ interface Flashcard {
   id: string
   term: string
   definition: string
+  progress_status?: 'learn' | 'recognize' | 'know'
+  next_due?: string
 }
 
 export default function FlashcardsPage() {
@@ -48,11 +50,23 @@ export default function FlashcardsPage() {
 
   const supabase = createClient()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
 
   useEffect(() => {
     loadUserAndSets()
   }, [])
+
+  useEffect(() => {
+    const setId = searchParams.get('set')
+    if (setId && flashcardSets.length > 0) {
+      const set = flashcardSets.find(s => s.id === setId)
+      if (set) {
+        setSelectedSet(set)
+        loadFlashcards(set.id)
+      }
+    }
+  }, [searchParams, flashcardSets])
 
   const loadUserAndSets = async () => {
     try {
@@ -124,11 +138,23 @@ export default function FlashcardsPage() {
   const loadFlashcards = async (setId: string) => {
     const { data: cardsData } = await supabase
       .from('flashcards')
-      .select('*')
+      .select(`
+        id,
+        term,
+        definition,
+        progress:flashcard_progress(status, due_at, interval_minutes)
+      `)
       .eq('set_id', setId)
       .order('created_at', { ascending: true })
 
-    setFlashcards(cardsData || [])
+    const mapped = (cardsData || []).map((c: any) => ({
+      id: c.id,
+      term: c.term,
+      definition: c.definition,
+      progress_status: c.progress?.[0]?.status as 'learn' | 'recognize' | 'know' | undefined,
+      next_due: c.progress?.[0]?.due_at as string | undefined
+    }))
+    setFlashcards(mapped)
   }
 
   const generateShareCode = () => {
@@ -288,6 +314,30 @@ export default function FlashcardsPage() {
     }
   }
 
+  const updateCardStatus = async (cardId: string, status: 'learn' | 'recognize' | 'know') => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const now = new Date().toISOString()
+      const { error } = await supabase
+        .from('flashcard_progress')
+        .upsert({
+          user_id: user.id,
+          card_id: cardId,
+          status,
+          last_reviewed: now,
+          updated_at: now
+        })
+
+      if (error) throw error
+
+      setFlashcards(prev => prev.map(c => c.id === cardId ? { ...c, progress_status: status } : c))
+      toast({ title: 'Saved', description: 'Card status updated' })
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to update status', variant: 'destructive' })
+    }
+  }
+
   const toggleSetVisibility = async (setId: string, isPublic: boolean) => {
     try {
       const { error } = await supabase
@@ -350,27 +400,38 @@ export default function FlashcardsPage() {
 
         if (file.name.endsWith('.json')) {
           const jsonData = JSON.parse(content)
-          cards = Array.isArray(jsonData) ? jsonData : []
+          cards = Array.isArray(jsonData) ? jsonData.filter((c:any) => c.term && c.definition) : []
         } else if (file.name.endsWith('.csv')) {
-          const lines = content.split('\n').filter(line => line.trim())
-          const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
+          const lines = content.split(/\r?\n/).filter(line => line.trim())
+          if (lines.length > 1) {
+            const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
+            const termIdx = headers.findIndex(h => /term/i.test(h))
+            const defIdx = headers.findIndex(h => /(definition|answer)/i.test(h))
           
-          for (let i = 1; i < lines.length; i++) {
-            const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim())
-            if (values.length >= 2) {
-              cards.push({
-                term: values[0],
-                definition: values[1]
-              })
+            for (let i = 1; i < lines.length; i++) {
+              const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim())
+              const term = termIdx >= 0 ? values[termIdx] : values[0]
+              const definition = defIdx >= 0 ? values[defIdx] : values[1]
+              if (term && definition) {
+                cards.push({ term, definition })
+              }
             }
           }
         }
 
         if (cards.length > 0) {
+          // De-duplicate by term within imported batch
+          const seen = new Set<string>()
+          const unique = cards.filter(c => {
+            const key = c.term.toLowerCase().trim()
+            if (seen.has(key)) return false
+            seen.add(key)
+            return true
+          })
           const { error } = await supabase
             .from('flashcards')
             .insert(
-              cards.map(card => ({
+              unique.map(card => ({
                 set_id: selectedSet.id,
                 term: card.term,
                 definition: card.definition
@@ -384,7 +445,7 @@ export default function FlashcardsPage() {
           
           toast({
             title: "Success",
-            description: `Imported ${cards.length} flashcards successfully`
+            description: `Imported ${unique.length} flashcards successfully`
           })
         }
       } catch (error: any) {
@@ -793,6 +854,35 @@ export default function FlashcardsPage() {
                             </Button>
                           </div>
                           <p className="text-gray-600 text-sm">{card.definition}</p>
+                          {card.next_due && (
+                            <p className="text-xs text-gray-500 mt-1">Next review: {new Date(card.next_due).toLocaleString()}</p>
+                          )}
+                          <div className="mt-3 flex gap-2">
+                            <Button
+                              variant={card.progress_status === 'learn' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => updateCardStatus(card.id, 'learn')}
+                              className={card.progress_status === 'learn' ? 'bg-purple-600 hover:bg-purple-700' : ''}
+                            >
+                              Learn
+                            </Button>
+                            <Button
+                              variant={card.progress_status === 'recognize' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => updateCardStatus(card.id, 'recognize')}
+                              className={card.progress_status === 'recognize' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                            >
+                              Recognize
+                            </Button>
+                            <Button
+                              variant={card.progress_status === 'know' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => updateCardStatus(card.id, 'know')}
+                              className={card.progress_status === 'know' ? 'bg-green-600 hover:bg-green-700' : ''}
+                            >
+                              Know
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>

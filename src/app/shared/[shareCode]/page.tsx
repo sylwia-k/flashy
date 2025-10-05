@@ -33,7 +33,7 @@ export default function SharedFlashcardSet({ params }: { params: { shareCode: st
   const loadSharedSet = async () => {
     try {
       // Load the shared flashcard set
-      const { data: setData, error: setError } = await supabase
+      const { data: setData, error: supabaseError } = await supabase
         .from('flashcard_sets')
         .select(`
           id,
@@ -45,7 +45,7 @@ export default function SharedFlashcardSet({ params }: { params: { shareCode: st
         .eq('share_code', params.shareCode)
         .single()
 
-      if (setError || !setData) {
+      if (supabaseError || !setData) {
         setError('Flashcard set not found')
         return
       }

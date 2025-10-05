@@ -10,7 +10,7 @@ import {
   Zap,
   BookOpen,
 } from "lucide-react";
-import { createClient } from "../../supabase/server";
+import { createClient } from "../supabase/server";
 import { supabase } from "@/supabase/client";
 
 export default async function Home() {

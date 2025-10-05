@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -34,7 +34,7 @@ interface GameStats {
 
 type GameMode = 'select' | 'falling-blocks' | 'runner' | 'quick-quiz'
 
-export default function GamesPage() {
+function GamesPageContent() {
   const [user, setUser] = useState<any>(null)
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([])
   const [selectedSet, setSelectedSet] = useState<FlashcardSet | null>(null)
@@ -721,5 +721,19 @@ export default function GamesPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function GamesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
+        </div>
+      }
+    >
+      <GamesPageContent />
+    </Suspense>
   )
 }

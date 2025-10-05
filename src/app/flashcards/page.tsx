@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -31,7 +31,7 @@ interface Flashcard {
   next_due?: string
 }
 
-export default function FlashcardsPage() {
+function FlashcardsPageContent() {
   const [user, setUser] = useState<any>(null)
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([])
   const [selectedSet, setSelectedSet] = useState<FlashcardSet | null>(null)
@@ -902,5 +902,19 @@ export default function FlashcardsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function FlashcardsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
+        </div>
+      }
+    >
+      <FlashcardsPageContent />
+    </Suspense>
   )
 }

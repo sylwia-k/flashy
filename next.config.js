@@ -7,7 +7,8 @@ const nextConfig = {
         domains: ['images.unsplash.com'],
     },
     webpack: (config) => {
-        config.resolve.alias['@/supabase'] = path.resolve(__dirname, 'src/supabase');
+        // Ensure @ alias resolves to src for all subpaths on Vercel
+        config.resolve.alias['@'] = path.resolve(__dirname, 'src');
         return config;
     }
 };

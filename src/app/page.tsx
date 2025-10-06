@@ -28,11 +28,11 @@ export default async function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">
-              Master Any Subject with Smart Flashcards
+              Opanuj dowolny przedmiot z inteligentnymi fiszkami
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Our intelligent flashcard system adapts to your learning style,
-              helping you retain information faster and more effectively.
+              Nasz inteligentny system fiszek dostosowuje się do Twojego stylu nauki,
+              pomagając szybciej i skuteczniej zapamiętywać informacje.
             </p>
           </div>
 
@@ -40,24 +40,24 @@ export default async function Home() {
             {[
               {
                 icon: <Brain className="w-6 h-6" />,
-                title: "Smart Learning",
-                description: "AI-powered spaced repetition algorithm",
+                title: "Inteligentna nauka",
+                description: "Algorytm powtórek oparty na AI",
               },
               {
                 icon: <Clock className="w-6 h-6" />,
-                title: "Time Efficient",
-                description: "Learn 3x faster with optimized study sessions",
+                title: "Oszczędność czasu",
+                description: "Ucz się 3x szybciej dzięki zoptymalizowanym sesjom",
               },
               {
                 icon: <Trophy className="w-6 h-6" />,
-                title: "Gamified Experience",
+                title: "Grywalizacja",
                 description:
-                  "Engaging games and challenges to boost motivation",
+                  "Gry i wyzwania motywujące do nauki",
               },
               {
                 icon: <BookOpen className="w-6 h-6" />,
-                title: "Comprehensive Library",
-                description: "Access thousands of pre-made flashcard sets",
+                title: "Bogata biblioteka",
+                description: "Dostęp do tysięcy gotowych zestawów fiszek",
               },
             ].map((feature, index) => (
               <div
@@ -73,33 +73,14 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-blue-600 text-white">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold mb-2">50K+</div>
-              <div className="text-blue-100">Active Learners</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">1M+</div>
-              <div className="text-blue-100">Flashcards Created</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">95%</div>
-              <div className="text-blue-100">Improved Test Scores</div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* How It Works Section */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">How FlashLearn Works</h2>
+            <h2 className="text-3xl font-bold mb-4">Jak działa Flashy</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Simple, effective, and scientifically proven learning method
+              Prosta, skuteczna i naukowo potwierdzona metoda nauki
             </p>
           </div>
 
@@ -107,21 +88,21 @@ export default async function Home() {
             {[
               {
                 step: "01",
-                title: "Create or Choose",
+                title: "Stwórz lub wybierz",
                 description:
-                  "Build your own flashcard sets or browse our extensive library of pre-made decks",
+                  "Twórz własne zestawy fiszek lub przeglądaj naszą bibliotekę gotowych talii",
               },
               {
                 step: "02",
-                title: "Study Smart",
+                title: "Ucz się mądrze",
                 description:
-                  "Our AI algorithm presents cards at optimal intervals for maximum retention",
+                  "Nasz algorytm AI podpowiada fiszki w optymalnych odstępach dla maksymalnej skuteczności",
               },
               {
                 step: "03",
-                title: "Track Progress",
+                title: "Śledź postępy",
                 description:
-                  "Monitor your learning journey with detailed analytics and performance insights",
+                  "Monitoruj swoją naukę dzięki szczegółowym statystykom i analizom",
               },
             ].map((item, index) => (
               <div key={index} className="text-center">
@@ -140,18 +121,17 @@ export default async function Home() {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">
-            Start Learning Smarter Today
+            Zacznij naukę już dziś
           </h2>
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of students and professionals who have transformed
-            their learning with FlashLearn.
+            Dołącz do tysięcy uczniów i studentów, którzy uczą się z Flashy.
           </p>
           {user ? (
             <a
               href="/dashboard"
               className="inline-flex items-center px-8 py-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
             >
-              Go to Dashboard
+              Przejdź do panelu
               <ArrowUpRight className="ml-2 w-5 h-5" />
             </a>
           ) : (
@@ -160,14 +140,14 @@ export default async function Home() {
                 href="/sign-up"
                 className="inline-flex items-center px-8 py-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
               >
-                Start Free Trial
+                Rozpocznij za darmo
                 <ArrowUpRight className="ml-2 w-5 h-5" />
               </a>
               <a
                 href="/sign-in"
                 className="inline-flex items-center px-8 py-4 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-lg font-medium"
               >
-                Sign In
+                Zaloguj się
               </a>
             </div>
           )}

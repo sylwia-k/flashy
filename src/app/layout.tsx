@@ -8,8 +8,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Tempo - Modern SaaS Starter",
-  description: "A modern full-stack starter template powered by Next.js",
+  title: "Flashy",
+  description: "Nowoczesna aplikacja do nauki z fiszkami.",
+  icons: undefined,
 };
 
 export default function RootLayout({
@@ -18,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+  <html lang="pl" suppressHydrationWarning>
       {/* <Script src="https://api.tempo.build/proxy-asset?url=https://storage.googleapis.com/tempo-public-assets/error-handling.js" /> [deprecated] */}
       <body className={inter.className}>
         <ThemeProvider

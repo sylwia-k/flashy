@@ -1,17 +1,14 @@
-import { FormMessage, Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
+import { FormMessage } from "@/components/form-message";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { SmtpMessage } from "../smtp-message";
 import { signUpAction } from "@/app/actions";
 import Navbar from "@/components/navbar";
-import { UrlProvider } from "@/components/url-provider";
 
-
-function Signup({ searchParams }: { searchParams: Record<string, string> }) {
-  // Komponent synchroniczny, message undefined (możesz dodać obsługę query params jeśli chcesz)
+function Signup() {
   const message = undefined;
+
   return (
     <>
       <Navbar />
@@ -21,7 +18,7 @@ function Signup({ searchParams }: { searchParams: Record<string, string> }) {
             <div className="space-y-2 text-center">
               <h1 className="text-3xl font-semibold tracking-tight">Załóż konto</h1>
               <p className="text-sm text-muted-foreground">
-                Masz już konto?{' '}
+                Masz już konto?{" "}
                 <Link
                   className="text-primary font-medium hover:underline transition-all"
                   href="/sign-in"
@@ -93,4 +90,3 @@ function Signup({ searchParams }: { searchParams: Record<string, string> }) {
 }
 
 export default Signup;
-

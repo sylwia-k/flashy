@@ -7,14 +7,10 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
 interface LoginProps {
-  searchParams: Promise<Message>;
+  searchParams?: Record<string, string | string[]>;
 }
 
 export default function SignInPage({ searchParams }: LoginProps) {
-  // searchParams to Promise<Message>, więc nie używamy await w komponencie synchronicznym
-  // Zakładamy, że przekazywany jest obiekt Message lub pusty
-  // Jeśli masz routing z przekazywaniem query params, możesz pobrać je bezpośrednio z URL
-  // Dla uproszczenia: przekazujemy message jako undefined
   const message = undefined;
 
   return (
@@ -88,3 +84,4 @@ export default function SignInPage({ searchParams }: LoginProps) {
     </>
   );
 }
+

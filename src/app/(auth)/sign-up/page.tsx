@@ -2,11 +2,15 @@ import { FormMessage } from "@/components/form-message";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import Navbar from "@/components/navbar";
 import { SmtpMessage } from "../smtp-message";
 import { signUpAction } from "@/app/actions";
-import Navbar from "@/components/navbar";
 
-function Signup() {
+interface SignupProps {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export default function Signup({ searchParams }: SignupProps) {
   const message = undefined;
 
   return (
@@ -15,61 +19,30 @@ function Signup() {
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
         <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-sm">
           <form action={signUpAction} className="flex flex-col space-y-6">
-            <div className="space-y-2 text-center">
+            <div className="text-center space-y-2">
               <h1 className="text-3xl font-semibold tracking-tight">Załóż konto</h1>
               <p className="text-sm text-muted-foreground">
                 Masz już konto?{" "}
-                <Link
-                  className="text-primary font-medium hover:underline transition-all"
-                  href="/sign-in"
-                >
+                <Link href="/sign-in" className="text-primary font-medium hover:underline transition-all">
                   Zaloguj się
                 </Link>
               </p>
             </div>
 
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="full_name" className="text-sm font-medium">
-                  Imię i nazwisko
-                </Label>
-                <Input
-                  id="full_name"
-                  name="full_name"
-                  type="text"
-                  placeholder="Jan Kowalski"
-                  required
-                  className="w-full"
-                />
+              <div>
+                <Label htmlFor="full_name">Imię i nazwisko</Label>
+                <Input id="full_name" name="full_name" type="text" required />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="twoj@email.com"
-                  required
-                  className="w-full"
-                />
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" name="email" type="email" required />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">
-                  Hasło
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  name="password"
-                  placeholder="Twoje hasło"
-                  minLength={6}
-                  required
-                  className="w-full"
-                />
+              <div>
+                <Label htmlFor="password">Hasło</Label>
+                <Input id="password" name="password" type="password" minLength={6} required />
               </div>
             </div>
 
@@ -88,5 +61,3 @@ function Signup() {
     </>
   );
 }
-
-export default Signup;

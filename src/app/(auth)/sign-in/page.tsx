@@ -9,7 +9,7 @@ interface SignInPageProps {
   searchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export default function SignInPage({ searchParams }: SignInPageProps) {
+export default function SignInPage() {
   const message = undefined;
 
   return (

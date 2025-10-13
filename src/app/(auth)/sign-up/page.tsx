@@ -10,7 +10,7 @@ interface SignupProps {
   searchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export default function Signup({ searchParams }: SignupProps) {
+export default function Signup() {
   const message = undefined;
 
   return (

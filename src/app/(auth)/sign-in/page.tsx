@@ -1,16 +1,13 @@
-import { signInAction } from "@/app/actions";
-import { FormMessage, Message } from "@/components/form-message";
 import Navbar from "@/components/navbar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { signInAction } from "@/app/actions";
+import { FormMessage } from "@/components/form-message";
 
-interface SignInPageProps {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
-
-export default function SignInPage() {
-  const message = undefined;
+export default function SignInPage({ searchParams }: { searchParams?: { [key: string]: string } }) {
+  // Jeśli chcesz przekazywać wiadomość np. po logout / error
+  const message = searchParams?.message;
 
   return (
     <>
@@ -21,37 +18,38 @@ export default function SignInPage() {
             <div className="space-y-2 text-center">
               <h1 className="text-3xl font-semibold tracking-tight">Zaloguj się</h1>
               <p className="text-sm text-muted-foreground">
-                Nie masz konta?{" "}
-                <Link href="/sign-up" className="text-primary font-medium hover:underline transition-all">
+                Nie masz konta?{' '}
+                <Link className="text-primary font-medium hover:underline" href="/sign-up">
                   Załóż konto
                 </Link>
               </p>
             </div>
 
             <div className="space-y-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" required />
+                <Input id="email" name="email" type="email" required placeholder="you@example.com" />
               </div>
 
-              <div>
-                <Label htmlFor="password">Hasło</Label>
-                <Input id="password" name="password" type="password" required />
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="password">Hasło</Label>
+                  <Link className="text-xs text-muted-foreground hover:text-foreground hover:underline" href="/forgot-password">
+                    Zapomniałeś hasła?
+                  </Link>
+                </div>
+                <Input id="password" name="password" type="password" required placeholder="Twoje hasło" />
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors"
-            >
+            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">
               Zaloguj się
             </button>
 
-            {message && <FormMessage message={message} />}
+            {message && <FormMessage message={{ text: message, type: 'info' }} />}
           </form>
         </div>
       </div>
     </>
   );
 }
- 

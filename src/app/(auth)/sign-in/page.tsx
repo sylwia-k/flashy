@@ -3,16 +3,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { signInAction } from "@/app/actions";
-import { FormMessage } from "@/components/form-message";
+import { FormMessage, Message } from "@/components/form-message";
 
-export default function SignInPage({
-  searchParams,
-}: {
-  searchParams?: Record<string, string | string[]>;
-}) {
+export default async function SignInPage(props: { searchParams: Promise<Record<string, string>> }) {
+  const searchParams = await props.searchParams;
   const messageParam = searchParams?.message;
-const message = Array.isArray(messageParam) ? messageParam[0] : messageParam;
-
+  const message = Array.isArray(messageParam) ? messageParam[0] : messageParam;
 
   return (
     <>
@@ -24,10 +20,7 @@ const message = Array.isArray(messageParam) ? messageParam[0] : messageParam;
               <h1 className="text-3xl font-semibold tracking-tight">Zaloguj się</h1>
               <p className="text-sm text-muted-foreground">
                 Nie masz konta?{" "}
-                <Link
-                  className="text-primary font-medium hover:underline"
-                  href="/sign-up"
-                >
+                <Link className="text-primary font-medium hover:underline" href="/sign-up">
                   Załóż konto
                 </Link>
               </p>
@@ -36,13 +29,7 @@ const message = Array.isArray(messageParam) ? messageParam[0] : messageParam;
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="you@example.com"
-                />
+                <Input id="email" name="email" type="email" required placeholder="you@example.com" />
               </div>
 
               <div className="space-y-2">
@@ -55,13 +42,7 @@ const message = Array.isArray(messageParam) ? messageParam[0] : messageParam;
                     Zapomniałeś hasła?
                   </Link>
                 </div>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  placeholder="Twoje hasło"
-                />
+                <Input id="password" name="password" type="password" required placeholder="Twoje hasło" />
               </div>
             </div>
 
@@ -72,9 +53,7 @@ const message = Array.isArray(messageParam) ? messageParam[0] : messageParam;
               Zaloguj się
             </button>
 
-           {message && <FormMessage message={{ message }} />}
-
-
+            {message && <FormMessage message={{ message }} />}
           </form>
         </div>
       </div>

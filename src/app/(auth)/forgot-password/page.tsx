@@ -1,20 +1,24 @@
-import { FormMessage } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
+import Navbar from "@/components/navbar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { forgotPasswordAction } from "@/app/actions";
-import Navbar from "@/components/navbar";
-import { UrlProvider } from "@/components/url-provider";
+import { FormMessage } from "@/components/form-message";
+import { SubmitButton } from "@/components/submit-button";
 import { SmtpMessage } from "../smtp-message";
+import { UrlProvider } from "@/components/url-provider";
 
-export default async function ForgotPasswordPage({
+export default function ForgotPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
-  const resolvedParams = await searchParams;
-  const message = resolvedParams?.message;
+  const message =
+    typeof searchParams?.message === "string"
+      ? searchParams.message
+      : Array.isArray(searchParams?.message)
+      ? searchParams.message[0]
+      : undefined;
 
   return (
     <>
@@ -27,7 +31,10 @@ export default async function ForgotPasswordPage({
                 <h1 className="text-3xl font-semibold tracking-tight">Reset Password</h1>
                 <p className="text-sm text-muted-foreground">
                   Already have an account?{" "}
-                  <Link className="text-primary font-medium hover:underline" href="/sign-in">
+                  <Link
+                    className="text-primary font-medium hover:underline transition-all"
+                    href="/sign-in"
+                  >
                     Sign in
                   </Link>
                 </p>
@@ -36,13 +43,21 @@ export default async function ForgotPasswordPage({
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" name="email" type="email" placeholder="you@example.com" required />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    required
+                    className="w-full"
+                  />
                 </div>
               </div>
 
               <SubmitButton
                 pendingText="Sending reset link..."
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+                className="w-full"
+                formAction={forgotPasswordAction}
               >
                 Reset Password
               </SubmitButton>

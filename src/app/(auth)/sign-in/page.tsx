@@ -5,13 +5,17 @@ import Link from "next/link";
 import { signInAction } from "@/app/actions";
 import { FormMessage } from "@/components/form-message";
 
-export default async function SignInPage({
+export default function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
-  const resolvedParams = await searchParams;
-  const message = resolvedParams?.message;
+  const message =
+    typeof searchParams?.message === "string"
+      ? searchParams.message
+      : Array.isArray(searchParams?.message)
+      ? searchParams.message[0]
+      : undefined;
 
   return (
     <>
@@ -23,7 +27,10 @@ export default async function SignInPage({
               <h1 className="text-3xl font-semibold tracking-tight">Zaloguj się</h1>
               <p className="text-sm text-muted-foreground">
                 Nie masz konta?{" "}
-                <Link className="text-primary font-medium hover:underline" href="/sign-up">
+                <Link
+                  className="text-primary font-medium hover:underline"
+                  href="/sign-up"
+                >
                   Załóż konto
                 </Link>
               </p>
@@ -32,7 +39,13 @@ export default async function SignInPage({
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" required placeholder="you@example.com" />
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="you@example.com"
+                />
               </div>
 
               <div className="space-y-2">
@@ -45,7 +58,13 @@ export default async function SignInPage({
                     Zapomniałeś hasła?
                   </Link>
                 </div>
-                <Input id="password" name="password" type="password" required placeholder="••••••••" />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                />
               </div>
             </div>
 

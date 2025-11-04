@@ -5,13 +5,17 @@ import Link from "next/link";
 import { signUpAction } from "@/app/actions";
 import { FormMessage } from "@/components/form-message";
 
-export default async function SignUpPage({
+export default function SignUpPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
-  const resolvedParams = await searchParams;
-  const message = resolvedParams?.message;
+  const message =
+    typeof searchParams?.message === "string"
+      ? searchParams.message
+      : Array.isArray(searchParams?.message)
+      ? searchParams.message[0]
+      : undefined;
 
   return (
     <>

@@ -7,8 +7,7 @@ import { FormMessage, Message } from "@/components/form-message";
 
 export default async function SignInPage(props: { searchParams: Promise<Record<string, string>> }) {
   const searchParams = await props.searchParams;
-  const messageParam = searchParams?.message;
-  const message = Array.isArray(messageParam) ? messageParam[0] : messageParam;
+  const message = searchParams?.message;
 
   return (
     <>
@@ -42,7 +41,7 @@ export default async function SignInPage(props: { searchParams: Promise<Record<s
                     Zapomniałeś hasła?
                   </Link>
                 </div>
-                <Input id="password" name="password" type="password" required placeholder="Twoje hasło" />
+                <Input id="password" name="password" type="password" required placeholder="••••••••" />
               </div>
             </div>
 

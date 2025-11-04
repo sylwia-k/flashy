@@ -1,16 +1,13 @@
-// app/sign-up/page.tsx
 import Navbar from "@/components/navbar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { signUpAction } from "@/app/actions";
+import { FormMessage } from "@/components/form-message";
 
-export default function SignUpPage({
-  searchParams,
-}: {
-  searchParams?: Record<string, string | string[]>;
-}) {
-  const message = searchParams?.message; // np. ?message=...
+export default async function SignUpPage(props: { searchParams: Promise<Record<string, string>> }) {
+  const searchParams = await props.searchParams;
+  const message = searchParams?.message;
 
   return (
     <>
@@ -22,10 +19,7 @@ export default function SignUpPage({
               <h1 className="text-3xl font-semibold tracking-tight">Załóż konto</h1>
               <p className="text-sm text-muted-foreground">
                 Masz już konto?{" "}
-                <Link
-                  className="text-primary font-medium hover:underline"
-                  href="/sign-in"
-                >
+                <Link className="text-primary font-medium hover:underline" href="/sign-in">
                   Zaloguj się
                 </Link>
               </p>
@@ -42,13 +36,7 @@ export default function SignUpPage({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Hasło</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  minLength={6}
-                  required
-                />
+                <Input id="password" name="password" type="password" minLength={6} required />
               </div>
             </div>
 
@@ -58,6 +46,8 @@ export default function SignUpPage({
             >
               Załóż konto
             </button>
+
+            {message && <FormMessage message={{ message }} />}
           </form>
         </div>
       </div>

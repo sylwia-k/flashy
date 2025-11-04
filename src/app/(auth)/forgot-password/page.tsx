@@ -8,9 +8,13 @@ import Navbar from "@/components/navbar";
 import { UrlProvider } from "@/components/url-provider";
 import { SmtpMessage } from "../smtp-message";
 
-export default async function ForgotPasswordPage(props: { searchParams: Promise<Record<string, string>> }) {
-  const searchParams = await props.searchParams;
-  const message = searchParams?.message;
+export default async function ForgotPasswordPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const resolvedParams = await searchParams;
+  const message = resolvedParams?.message;
 
   return (
     <>

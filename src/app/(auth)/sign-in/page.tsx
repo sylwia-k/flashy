@@ -3,11 +3,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { signInAction } from "@/app/actions";
-import { FormMessage, Message } from "@/components/form-message";
+import { FormMessage } from "@/components/form-message";
 
-export default async function SignInPage(props: { searchParams: Promise<Record<string, string>> }) {
-  const searchParams = await props.searchParams;
-  const message = searchParams?.message;
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const resolvedParams = await searchParams;
+  const message = resolvedParams?.message;
 
   return (
     <>

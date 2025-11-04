@@ -8,14 +8,10 @@ import { FormMessage } from "@/components/form-message";
 export default function SignInPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: { [key: string]: string };
 }) {
-  const message =
-    typeof searchParams?.message === "string"
-      ? searchParams.message
-      : Array.isArray(searchParams?.message)
-      ? searchParams.message[0]
-      : undefined;
+  // Pobieramy komunikat, jeśli istnieje
+  const message = searchParams?.message;
 
   return (
     <>

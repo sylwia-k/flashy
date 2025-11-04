@@ -11,14 +11,9 @@ import { UrlProvider } from "@/components/url-provider";
 export default function ForgotPasswordPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: { [key: string]: string };
 }) {
-  const message =
-    typeof searchParams?.message === "string"
-      ? searchParams.message
-      : Array.isArray(searchParams?.message)
-      ? searchParams.message[0]
-      : undefined;
+  const message = searchParams?.message;
 
   return (
     <>
@@ -28,7 +23,9 @@ export default function ForgotPasswordPage({
           <UrlProvider>
             <form className="flex flex-col space-y-6" action={forgotPasswordAction}>
               <div className="space-y-2 text-center">
-                <h1 className="text-3xl font-semibold tracking-tight">Reset Password</h1>
+                <h1 className="text-3xl font-semibold tracking-tight">
+                  Reset Password
+                </h1>
                 <p className="text-sm text-muted-foreground">
                   Already have an account?{" "}
                   <Link

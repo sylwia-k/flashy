@@ -8,14 +8,9 @@ import { FormMessage } from "@/components/form-message";
 export default function SignUpPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: { [key: string]: string };
 }) {
-  const message =
-    typeof searchParams?.message === "string"
-      ? searchParams.message
-      : Array.isArray(searchParams?.message)
-      ? searchParams.message[0]
-      : undefined;
+  const message = searchParams?.message;
 
   return (
     <>
@@ -27,7 +22,10 @@ export default function SignUpPage({
               <h1 className="text-3xl font-semibold tracking-tight">Załóż konto</h1>
               <p className="text-sm text-muted-foreground">
                 Masz już konto?{" "}
-                <Link className="text-primary font-medium hover:underline" href="/sign-in">
+                <Link
+                  className="text-primary font-medium hover:underline"
+                  href="/sign-in"
+                >
                   Zaloguj się
                 </Link>
               </p>
@@ -38,13 +36,21 @@ export default function SignUpPage({
                 <Label htmlFor="full_name">Imię i nazwisko</Label>
                 <Input id="full_name" name="full_name" type="text" required />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" name="email" type="email" required />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="password">Hasło</Label>
-                <Input id="password" name="password" type="password" minLength={6} required />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  minLength={6}
+                  required
+                />
               </div>
             </div>
 

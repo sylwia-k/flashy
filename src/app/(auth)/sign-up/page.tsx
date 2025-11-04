@@ -5,8 +5,11 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { signUpAction } from "@/app/actions";
 
-export default function SignUpPage({ searchParams }: { searchParams?: { [key: string]: string } }) {
-  // Jeśli nie potrzebujesz searchParams, możesz go po prostu ignorować
+export default function SignUpPage({
+  searchParams,
+}: {
+  searchParams?: Record<string, string | string[]>;
+}) {
   const message = searchParams?.message; // np. ?message=...
 
   return (
@@ -18,8 +21,11 @@ export default function SignUpPage({ searchParams }: { searchParams?: { [key: st
             <div className="space-y-2 text-center">
               <h1 className="text-3xl font-semibold tracking-tight">Załóż konto</h1>
               <p className="text-sm text-muted-foreground">
-                Masz już konto?{' '}
-                <Link className="text-primary font-medium hover:underline" href="/sign-in">
+                Masz już konto?{" "}
+                <Link
+                  className="text-primary font-medium hover:underline"
+                  href="/sign-in"
+                >
                   Zaloguj się
                 </Link>
               </p>
@@ -36,11 +42,20 @@ export default function SignUpPage({ searchParams }: { searchParams?: { [key: st
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Hasło</Label>
-                <Input id="password" name="password" type="password" minLength={6} required />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  minLength={6}
+                  required
+                />
               </div>
             </div>
 
-            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+            >
               Załóż konto
             </button>
           </form>

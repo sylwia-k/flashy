@@ -8,15 +8,20 @@ import { forgotPasswordAction } from "@/app/actions";
 import Navbar from "@/components/navbar";
 import { UrlProvider } from "@/components/url-provider";
 
-export default async function ForgotPassword(props: {
-  searchParams: Promise<Message>;
+export default function ForgotPasswordPage({
+  searchParams,
+}: {
+  searchParams?: Record<string, string | string[]>;
 }) {
-  const searchParams = await props.searchParams;
+  // Konwersja parametrów zapytania do wiadomości
+  const messageParam = searchParams?.message;
+  const message: Message | undefined =
+    typeof messageParam === "string" ? { message: messageParam } : undefined;
 
-  if ("message" in searchParams) {
+  if (message) {
     return (
       <div className="flex h-screen w-full flex-1 items-center justify-center p-4 sm:max-w-md">
-        <FormMessage message={searchParams} />
+        <FormMessage message={message} />
       </div>
     );
   }
@@ -29,14 +34,14 @@ export default async function ForgotPassword(props: {
           <UrlProvider>
             <form className="flex flex-col space-y-6">
               <div className="space-y-2 text-center">
-                <h1 className="text-3xl font-semibold tracking-tight">Reset Password</h1>
+                <h1 className="text-3xl font-semibold tracking-tight">Resetuj hasło</h1>
                 <p className="text-sm text-muted-foreground">
-                  Already have an account?{" "}
+                  Masz już konto?{" "}
                   <Link
                     className="text-primary font-medium hover:underline transition-all"
                     href="/sign-in"
                   >
-                    Sign in
+                    Zaloguj się
                   </Link>
                 </p>
               </div>
@@ -59,13 +64,13 @@ export default async function ForgotPassword(props: {
 
               <SubmitButton
                 formAction={forgotPasswordAction}
-                pendingText="Sending reset link..."
+                pendingText="Wysyłanie linku resetującego..."
                 className="w-full"
               >
-                Reset Password
+                Wyślij link resetujący
               </SubmitButton>
 
-              <FormMessage message={searchParams} />
+              {message && <FormMessage message={message} />}
             </form>
           </UrlProvider>
         </div>

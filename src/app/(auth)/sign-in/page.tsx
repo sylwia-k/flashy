@@ -5,13 +5,14 @@ import Link from "next/link";
 import { signInAction } from "@/app/actions";
 import { FormMessage } from "@/components/form-message";
 
-export default function SignInPage({
+export default async function SignInPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string };
+  searchParams?: Promise<{ [key: string]: string }>;
 }) {
   // Pobieramy komunikat, jeśli istnieje
-  const message = searchParams?.message;
+  const params = await searchParams;
+  const message = params?.message;
 
   return (
     <>

@@ -5,12 +5,13 @@ import Link from "next/link";
 import { signUpAction } from "@/app/actions";
 import { FormMessage } from "@/components/form-message";
 
-export default function SignUpPage({
+export default async function SignUpPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string };
+  searchParams?: Promise<{ [key: string]: string }>;
 }) {
-  const message = searchParams?.message;
+  const params = await searchParams;
+  const message = params?.message;
 
   return (
     <>

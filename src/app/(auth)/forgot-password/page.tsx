@@ -60,7 +60,7 @@ async function ForgotPasswordContent({
                 Reset Password
               </SubmitButton>
 
-              {message && <FormMessage message={{ message }} />}
+              {message && <FormMessage message={{ message: message }} />}
             </form>
           </UrlProvider>
         </div>

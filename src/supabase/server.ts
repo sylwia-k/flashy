@@ -12,9 +12,13 @@ export const createClient = async () => {
         getAll: () =>
           cookieStore.getAll().map(({ name, value }) => ({ name, value })),
         setAll: (cookies: { name: string; value: string; options?: any }[]) => {
-          cookies.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
+          try {
+            cookies.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch (error) {
+            console.error('Error setting cookies:', error);
+          }
         },
       },
     }

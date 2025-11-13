@@ -62,7 +62,7 @@ async function SignUpContent({
               Załóż konto
             </button>
 
-            {message && <FormMessage message={{ message }} />}
+            {message && <FormMessage message={{ message: message }} />}
           </form>
         </div>
       </div>

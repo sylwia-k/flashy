@@ -72,7 +72,7 @@ async function SignInContent({
               Zaloguj się
             </button>
 
-            {message && <FormMessage message={{ message }} />}
+            {message && <FormMessage message={{ message: message }} />}
           </form>
         </div>
       </div>

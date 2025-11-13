@@ -16,7 +16,11 @@ interface FlashcardSet {
   card_count: number
 }
 
-export default function SharedFlashcardSet({ params }: { params: { shareCode: string } }) {
+interface SharedFlashcardSetClientProps {
+  shareCode: string
+}
+
+function SharedFlashcardSetClient({ shareCode }: SharedFlashcardSetClientProps) {
   const [flashcardSet, setFlashcardSet] = useState<FlashcardSet | null>(null)
   const [flashcards, setFlashcards] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -28,9 +32,10 @@ export default function SharedFlashcardSet({ params }: { params: { shareCode: st
 
   useEffect(() => {
     loadSharedSet()
-  }, [params.shareCode])
+  }, [shareCode])
 
   const loadSharedSet = async () => {
+    if (!shareCode) return;
     try {
       // Load the shared flashcard set
       const { data: setData, error: fetchError } = await supabase
@@ -42,7 +47,7 @@ export default function SharedFlashcardSet({ params }: { params: { shareCode: st
           created_at,
           flashcards(count)
         `)
-        .eq('share_code', params.shareCode)
+        .eq('share_code', shareCode)
         .single()
 
       if (fetchError || !setData) {
@@ -270,4 +275,13 @@ export default function SharedFlashcardSet({ params }: { params: { shareCode: st
       </div>
     </div>
   )
+}
+
+export default async function SharedFlashcardSetPage({
+  params,
+}: {
+  params: Promise<{ shareCode: string }>;
+}) {
+  const { shareCode } = await params;
+  return <SharedFlashcardSetClient shareCode={shareCode} />
 }

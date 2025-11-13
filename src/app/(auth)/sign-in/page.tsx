@@ -5,7 +5,7 @@ import Link from "next/link";
 import { signInAction } from "@/app/actions";
 import { FormMessage } from "@/components/form-message";
 
-export default async function SignInPage({
+async function SignInContent({
   searchParams,
 }: {
   searchParams?: Promise<{ [key: string]: string }>;
@@ -78,4 +78,12 @@ export default async function SignInPage({
       </div>
     </>
   );
+}
+
+export default function SignInPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ [key: string]: string }>;
+}) {
+  return <SignInContent searchParams={searchParams} />;
 }

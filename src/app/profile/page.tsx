@@ -118,7 +118,7 @@ export default function ProfilePage() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
-      const formattedSets = setsData?.map(set => ({
+      const formattedSets = setsData?.map((set: any) => ({
         id: set.id,
         name: set.name,
         description: set.description,

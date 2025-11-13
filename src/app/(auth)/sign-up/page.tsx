@@ -5,7 +5,7 @@ import Link from "next/link";
 import { signUpAction } from "@/app/actions";
 import { FormMessage } from "@/components/form-message";
 
-export default async function SignUpPage({
+async function SignUpContent({
   searchParams,
 }: {
   searchParams?: Promise<{ [key: string]: string }>;
@@ -68,4 +68,12 @@ export default async function SignUpPage({
       </div>
     </>
   );
+}
+
+export default function SignUpPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ [key: string]: string }>;
+}) {
+  return <SignUpContent searchParams={searchParams} />;
 }

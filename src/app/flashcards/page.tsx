@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -31,7 +32,7 @@ interface Flashcard {
   next_due?: string
 }
 
-export default function FlashcardsPage() {
+function FlashcardsContent() {
   const [user, setUser] = useState<any>(null)
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([])
   const [selectedSet, setSelectedSet] = useState<FlashcardSet | null>(null)
@@ -122,7 +123,7 @@ export default function FlashcardsPage() {
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
-    const formattedSets = setsData?.map(set => ({
+    const formattedSets = setsData?.map((set: any) => ({
       id: set.id,
       name: set.name,
       description: set.description,
@@ -902,5 +903,20 @@ export default function FlashcardsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function FlashcardsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading flashcards...</p>
+        </div>
+      </div>
+    }>
+      <FlashcardsContent />
+    </Suspense>
   )
 }

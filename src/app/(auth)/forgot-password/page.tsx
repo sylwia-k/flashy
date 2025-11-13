@@ -8,7 +8,7 @@ import { SubmitButton } from "@/components/submit-button";
 import { SmtpMessage } from "../smtp-message";
 import { UrlProvider } from "@/components/url-provider";
 
-export default async function ForgotPasswordPage({
+async function ForgotPasswordContent({
   searchParams,
 }: {
   searchParams?: Promise<{ [key: string]: string }>;
@@ -68,4 +68,12 @@ export default async function ForgotPasswordPage({
       </div>
     </>
   );
+}
+
+export default function ForgotPasswordPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ [key: string]: string }>;
+}) {
+  return <ForgotPasswordContent searchParams={searchParams} />;
 }
